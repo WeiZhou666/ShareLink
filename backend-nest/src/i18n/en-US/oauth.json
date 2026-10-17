@@ -1,0 +1,22 @@
+{
+  "authorizationDenied": "Third-party authorization denied: {error}",
+  "identityAlreadyBound": "This third-party account is already bound to another user",
+  "invalidOrExpiredState": "Invalid or expired state, please restart the login",
+  "providerEmailNotVerified": "Third-party account email not verified, please sign up/in with password first and bind it in settings",
+  "emailAlreadyTaken": "This email is already registered, please sign in with password and bind the third-party account in settings",
+  "accountAlreadyExists": "Account or third-party identity already exists, please sign in directly",
+  "unsupportedProvider": "Unsupported login provider: {name}",
+  "tokenExchangeFailed": "Third-party authorization failed (token exchange)",
+  "missingIdToken": "Third-party response missing id_token",
+  "invalidIdToken": "Invalid third-party identity credentials",
+  "nonceVerificationFailed": "Nonce verification failed (request expired or replayed)",
+  "idpEmailNotVerified": "Third-party email not verified, please complete verification with the provider first",
+  "missingSubClaim": "ID Token missing sub (user identifier)",
+  "discoveryUnreachable": "Cannot connect to {provider} discovery endpoint: {message}",
+  "discoveryFetchFailed": "Cannot fetch {provider} OIDC discovery document (HTTP {status})",
+  "oauthNotConfigured": "{provider} OAuth not configured: please set {env}",
+  "githubAuthFailed": "GitHub authorization failed (invalid or used code)",
+  "githubNotConfigured": "GitHub login not configured: please set {env}",
+  "githubUnreachable": "Cannot connect to GitHub API: {message}",
+  "githubApiError": "GitHub API error (HTTP {status})"
+}

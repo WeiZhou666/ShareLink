@@ -1,0 +1,14 @@
+{
+  "activationSubject": "ShareLink 邮箱验证码",
+  "activationHello": "您好，",
+  "activationBody": "您的邮箱验证码如下（10 分钟内有效）：",
+  "resetSubject": "ShareLink 密码重置验证码",
+  "resetHello": "您好，",
+  "resetBody": "您（或他人）请求了密码重置。您的密码重置验证码如下（10 分钟内有效）：",
+  "footer": "如果这不是您的操作，请忽略本邮件。",
+  "testSubject": "ShareLink 测试邮件",
+  "testBody": "这是一封测试邮件——收到即代表邮件配置连通正常。",
+  "shareLinkSubject": "ShareLink 分享链接",
+  "shareLinkHello": "您好，",
+  "shareLinkBody": "「{name}」已分享给您，点击下方链接查看："
+}

@@ -1,0 +1,104 @@
+# 开发环境依赖容器（MySQL / Redis / Mailpit / ClamAV / MinIO），变量取自 .env.development：
+#   docker compose --env-file .env.development up -d
+#   或使用脚本：npm run docker:up
+name: sharelink
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: sharelink-mysql
+    restart: unless-stopped
+    ports:
+      - '${DB_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ 'CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-p${DB_PASS}' ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Redis：认证黑名单（token 即时吊销）等场景；开发环境无密码
+  redis:
+    image: redis:7-alpine
+    container_name: sharelink-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: [ 'redis-server', '--appendonly', 'yes' ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ 'CMD', 'redis-cli', 'ping' ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Mailpit：本地 SMTP 假邮局（SMTP :1025，网页收件箱 http://localhost:8025），
+  # 配合 .env 的 MAIL_DELIVERY=smtp 做邮件全链路联调，无需真实邮箱
+  mailpit:
+    image: axllent/mailpit
+    container_name: sharelink-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+  # ClamAV 病毒扫描守护进程（上传文件安全扫描）：
+  # - clamd 监听 3310（INSTREAM 协议），backend 经 docker 网络以服务名直连（CLAMAV_HOST=clamav），
+  #   端口不映射宿主机——病毒扫描是内部组件，不对外暴露
+  # - 首次启动 freshclam 需下载 ~250MB 病毒库（数分钟），healthcheck 用镜像自带的 clamdcheck.sh，
+  #   不能用端口探测（clamd 库加载完成前可能已监听但拒绝扫描）
+  # - 病毒库持久化到 named volume，重启不重新下载；freshclam 每日自动更新签名
+  # - 内存预算 ~1~1.5GB（病毒库全量驻留）；资源紧张的机器可在 config.yaml 关 antivirus.enabled
+  clamav:
+    image: clamav/clamav:latest
+    container_name: sharelink-clamav
+    restart: unless-stopped
+    ports:
+      # 开发环境后端跑在宿主机（node 直启），需经 localhost:3310 连 clamd；
+      # 生产若 backend 同在网络内容器中，可删除此映射
+      - '${CLAMAV_PORT:-3310}:3310'
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: [ 'CMD', 'clamdcheck.sh' ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 300s # 首次下载病毒库的宽限期
+
+  # MinIO 对象存储（S3 兼容 API）：S3 API http://localhost:9000。
+  # 镜像用 bitnamilegacy（Bitnami 2025 冻结版）：官方 minio/minio 已从 Docker Hub 下架，
+  # quay.io 主仓库直连被墙、国内加速器无缓存——本机可拉取的即为此镜像。
+  # 此构建（2025-05-24）已无内置控制台 UI：管理用容器自带的 mc 命令行，
+  #   如 docker exec sharelink-minio mc ls local/（Bitnami 已预配 local 别名 = root 凭证）
+  # 后端 STORAGE_DRIVER=s3 时消费此桶（.env.development 的 S3_* 六键；桶不自动创建，
+  #   需 mc mb local/sharelink-dev），数据持久化到 named volume
+  minio:
+    image: bitnamilegacy/minio:latest
+    container_name: sharelink-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000' # S3 兼容 API
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sharelink}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-sharelink2026}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live' ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  mysql_data:
+  redis_data:
+  clamav_data:
+  minio_data:

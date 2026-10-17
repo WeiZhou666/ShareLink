@@ -1,0 +1,22 @@
+{
+  "authorizationDenied": "第三方授权被拒绝：{error}",
+  "identityAlreadyBound": "该第三方账号已绑定其他用户",
+  "invalidOrExpiredState": "state 无效或已过期，请重新发起登录",
+  "providerEmailNotVerified": "第三方账号未验证邮箱，请先用密码注册/登录后在设置中绑定",
+  "emailAlreadyTaken": "该邮箱已注册，请用密码登录后在设置中绑定第三方账号",
+  "accountAlreadyExists": "账号或第三方身份已存在，请直接登录",
+  "unsupportedProvider": "不支持的登录方式：{name}",
+  "tokenExchangeFailed": "第三方授权失败（token 交换）",
+  "missingIdToken": "第三方响应缺少 id_token",
+  "invalidIdToken": "第三方身份凭证无效",
+  "nonceVerificationFailed": "nonce 校验失败（请求过期或重放）",
+  "idpEmailNotVerified": "第三方邮箱未验证，请先在提供商处完成验证",
+  "missingSubClaim": "ID Token 缺少 sub（用户标识）",
+  "discoveryUnreachable": "无法连接 {provider} 的发现文档端点：{message}",
+  "discoveryFetchFailed": "无法获取 {provider} 的 OIDC 发现文档（HTTP {status}）",
+  "oauthNotConfigured": "{provider} OAuth 未配置：请设置 {env}",
+  "githubAuthFailed": "GitHub 授权失败（code 无效或已使用）",
+  "githubNotConfigured": "GitHub 登录未配置：请设置 {env}",
+  "githubUnreachable": "无法连接 GitHub 接口：{message}",
+  "githubApiError": "GitHub 接口异常（HTTP {status}）"
+}

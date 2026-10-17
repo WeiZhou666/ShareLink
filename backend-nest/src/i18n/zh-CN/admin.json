@@ -1,0 +1,8 @@
+{
+  "userNotFound": "用户不存在",
+  "shareNotFound": "分享不存在",
+  "cannotChangeOwnAdminRole": "不能修改自己的管理员身份",
+  "cannotDeleteSelf": "不能删除自己的账号",
+  "cannotDeleteLastAdmin": "不能删除最后一个管理员",
+  "adminRequired": "需要管理员权限"
+}

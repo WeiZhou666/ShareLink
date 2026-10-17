@@ -1,0 +1,193 @@
+/* ============================================================
+   设计 token 层 —— 现代简洁 SaaS 风（类 Linear/Vercel）
+   加载顺序（见 main.ts）：EP index.css → EP dark/css-vars.css → 本文件 → global.css
+   覆盖原理：EP 亮色变量挂 :root，暗色挂 html.dark（特异度 0,1,1）；
+   本文件暗色段用 :root.dark（0,2,0）天然压过 EP 暗色默认值
+   ============================================================ */
+
+:root {
+  /* ---- 底色 ---- */
+  --app-bg-base: #fafafa;
+  /* 页面画布 */
+  --app-bg-surface: #ffffff;
+  /* 卡片/面板 */
+  --app-bg-subtle: #f4f4f5;
+  /* hover/工具条/表头 */
+  --app-bg-elevated: #ffffff;
+  /* 弹层 */
+
+  /* ---- 文字（1 主 2 次 3 弱）---- */
+  --app-text-1: #18181b;
+  --app-text-2: #52525b;
+  --app-text-3: #a1a1aa;
+
+  /* ---- 边框 ---- */
+  --app-border: #e4e4e7;
+  --app-border-strong: #d4d4d8;
+
+  /* ---- 品牌色（靛蓝，摆脱上游紫 #6741d9）---- */
+  --app-brand: #5e6ad2;
+  --app-brand-hover: #4b55a8;
+  /* primary dark-2 */
+  --app-brand-subtle: rgba(94, 106, 210, 0.1);
+
+  /* ---- 圆角 ---- */
+  --app-radius-sm: 6px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 12px;
+  --app-radius-full: 9999px;
+
+  /* ---- 阴影（暗色以边框分层为主、阴影为辅，见 :root.dark 段）---- */
+  --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* ---- 字阶（标题 600，大标题收紧字距）---- */
+  --app-font-xs: 12px;
+  --app-font-sm: 13px;
+  --app-font-md: 14px;
+  --app-font-lg: 16px;
+  --app-font-xl: 20px;
+  --app-font-2xl: 24px;
+
+  /* ---- 布局 ---- */
+  --app-header-h: 56px;
+  --app-sidebar-w: 232px;
+  --app-content-max: 1120px;
+  --app-page-x: 24px;
+  --app-page-y: 24px;
+
+  /* ============================================================
+     Element Plus 变量映射：把 EP 体系指到 --app-* token
+     ============================================================ */
+
+  /* 主色 tint：按 mixHex 公式预计算的静态值（亮色段） */
+  --el-color-primary: #5e6ad2;
+  --el-color-primary-light-3: #8e97e0;
+  --el-color-primary-light-5: #afb5e9;
+  --el-color-primary-light-7: #cfd2f2;
+  --el-color-primary-light-8: #dfe1f6;
+  --el-color-primary-light-9: #eff0fb;
+  --el-color-primary-dark-2: #4b55a8;
+
+  --el-border-radius-base: var(--app-radius-sm);
+  --el-border-radius-small: 4px;
+  --el-border-radius-round: var(--app-radius-full);
+
+  --el-bg-color: var(--app-bg-surface);
+  --el-bg-color-page: var(--app-bg-base);
+  --el-bg-color-overlay: var(--app-bg-elevated);
+
+  --el-text-color-primary: var(--app-text-1);
+  --el-text-color-regular: var(--app-text-1);
+  --el-text-color-secondary: var(--app-text-2);
+  --el-text-color-placeholder: var(--app-text-3);
+
+  --el-border-color: var(--app-border);
+  --el-border-color-light: var(--app-border);
+  --el-border-color-lighter: var(--app-border);
+  --el-border-color-extra-light: var(--app-border);
+
+  --el-fill-color: var(--app-bg-subtle);
+  --el-fill-color-light: var(--app-bg-subtle);
+  --el-fill-color-lighter: var(--app-bg-subtle);
+  --el-fill-color-blank: var(--app-bg-surface);
+
+  --el-box-shadow: var(--app-shadow-md);
+  --el-box-shadow-light: var(--app-shadow-sm);
+
+  /* 卡片：边框优先，弱化阴影 */
+  --el-card-border-color: var(--app-border);
+  --el-card-border-radius: var(--app-radius-md);
+
+  /* 菜单（侧栏）：透明底融入画布，hover 用 subtle */
+  --el-menu-bg-color: transparent;
+  --el-menu-hover-bg-color: var(--app-bg-subtle);
+  --el-menu-item-height: 36px;
+
+  /* 表格：表头 subtle 底、边框弱化 */
+  --el-table-border-color: var(--app-border);
+  --el-table-header-bg-color: var(--app-bg-subtle);
+  --el-table-header-text-color: var(--app-text-2);
+
+  /* 弹层 */
+  --el-dialog-bg-color: var(--app-bg-elevated);
+  --el-drawer-bg-color: var(--app-bg-elevated);
+  --el-popover-bg-color: var(--app-bg-elevated);
+}
+
+/* ---- 暗色段（:root.dark 压过 EP 的 html.dark 默认）---- */
+:root.dark {
+  --app-bg-base: #0a0a0b;
+  --app-bg-surface: #141416;
+  --app-bg-subtle: #1d1d21;
+  --app-bg-elevated: #1a1a1f;
+
+  --app-text-1: #ececee;
+  --app-text-2: #a0a0a8;
+  --app-text-3: #63636b;
+
+  --app-border: #26262a;
+  --app-border-strong: #34343a;
+
+  --app-brand-subtle: rgba(94, 106, 210, 0.18);
+
+  --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --app-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  /* 主色 tint：按 mixHex 公式预计算的静态值（暗色段，混入 #141414） */
+  --el-color-primary: #5e6ad2;
+  /* EP dark/css-vars.css 会覆写 primary 本体，必须同值压回 */
+  --el-color-primary-light-3: #7e88db;
+  --el-color-primary-light-5: #393f73;
+  --el-color-primary-light-7: #2a2e4d;
+  --el-color-primary-light-8: #23253a;
+  --el-color-primary-light-9: #1b1d27;
+  --el-color-primary-dark-2: #7e88db;
+
+  --el-fill-color-blank: var(--app-bg-surface);
+}
+
+/* ---- 移动端布局断点 ---- */
+@media (max-width: 768px) {
+  :root {
+    --app-page-x: 16px;
+  }
+}
+
+/* ============================================================
+   组件细节层：滚动条 / focus ring / 弹层收口
+   ============================================================ */
+
+/* 细滚动条（颜色随 token 自动适配亮暗） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-border-strong);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--app-text-3);
+}
+
+/* 键盘可达性：统一品牌色 focus ring（:focus-visible 仅键盘触发，不干扰鼠标点击） */
+:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+/* 弹层：大圆角 + 细边框（暗色下阴影不可见，边框承担与底色的分层） */
+.el-dialog,
+.el-message-box {
+  border-radius: var(--app-radius-lg);
+  border: 1px solid var(--app-border);
+}

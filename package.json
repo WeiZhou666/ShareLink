@@ -1,0 +1,18 @@
+{
+  "name": "sharelink",
+  "version": "2.0.0-beta.1",
+  "private": true,
+  "description": "ShareLink - 基于 Pingvin Share X 二次开发的自托管文件分享平台（monorepo 脚本聚合器）",
+  "scripts": {
+    "install:all": "cd backend-nest && npm install && cd ../frontend-vue && npm install",
+    "dev": "concurrently -n backend,frontend -c blue,green \"cd backend-nest && npm run start:dev\" \"cd frontend-vue && npm run dev\"",
+    "dev:backend": "cd backend-nest && npm run start:dev",
+    "dev:frontend": "cd frontend-vue && npm run dev",
+    "build": "cd backend-nest && npm run build && cd ../frontend-vue && npm run build",
+    "format": "cd backend-nest && npm run format && cd ../frontend-vue && npm run format",
+    "lint": "cd backend-nest && npm run lint && cd ../frontend-vue && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

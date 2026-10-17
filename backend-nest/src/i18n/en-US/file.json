@@ -1,0 +1,15 @@
+{
+  "invalidIdFormat": "Invalid ID format",
+  "notFound": "File not found",
+  "quarantined": "This file has been quarantined by virus scanning and cannot be downloaded",
+  "passwordProtected": "This share is password protected",
+  "alreadyCompleted": "Share is already completed",
+  "notEnoughSpace": "Not enough space on the server",
+  "unexpectedChunk": "Unexpected chunk received",
+  "maxSizeExceeded": "Max share size exceeded",
+  "zipError": "Error creating ZIP file",
+  "s3MultipartPartTooSmall": "Chunk size too small for direct upload (S3 requires >= 5MiB per part except the last), falling back to proxied upload",
+  "s3UploadStale": "Direct upload session expired, please retry",
+  "s3CompleteFailed": "Part validation failed, please retry",
+  "s3DirectNotSupported": "Current storage driver does not support direct upload"
+}

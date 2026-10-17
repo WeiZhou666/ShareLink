@@ -1,0 +1,32 @@
+# ShareLink 应用配置示例（三层取值：本文件 > 数据库（管理后台 UI） > 代码默认值）
+# 使用：复制为 config.yaml（与 backend-nest 的启动目录同级），只在启动时加载一次，修改后须重启。
+# 原则：这里只保留「部署级 / 协议级 / 安全基线」键（锁死后管理员后台该键只读），
+#       其余全部交给前端「配置管理」页编辑（落库），无需在此维护。
+# 完整变量清单见 backend-nest/src/config/config.constants.ts；体系说明见 backend-nest/docs/config-scheme.md。
+
+general:
+  # 站点对外地址（分享链接 /s/{id}、页面 <base> 都用它拼接）——错了全站链接错，部署级锁死
+  appUrl: http://localhost:3001
+
+security:
+  # 匿名建分享：滥用面大，作为安全基线锁死为 false
+  allowUnauthenticatedShares: "false"
+  # 管理员越权访问所有分享（含密码/过期/已删）：安全敏感开关，锁死
+  allowAdminAccessAllShares: "false"
+
+share:
+  # 分块大小（字节）：上传协议参数——前端分块、断点续传期望块索引、raw body 限制都依赖它，
+  # 改动须前后端一致并重启，锁死
+  chunkSize: "10000000"
+
+antivirus:
+  # ClamAV 病毒扫描：安全底线，不允许从管理界面关闭
+  enabled: "true"
+
+smtp:
+  # 邮件投递开关：跟随部署走（SMTP 凭证在 .env，不进配置体系），锁死
+  enabled: "true"
+
+oauth:
+  # 开放哪些第三方登录：跟随部署走（provider 凭证在 .env），锁死
+  openProviders: github

@@ -1,0 +1,167 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 全局底色/文字色：引 token（亮暗由 tokens.css 的 :root / :root.dark 切换） */
+body {
+  background-color: var(--app-bg-base);
+  color: var(--app-text-1);
+  /* 首页 hero 用负 margin 铺满视口，防止 100vw 与滚动条的差值产生横向滚动 */
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- auth 系页面公共元素（配合 AuthShell 外壳使用） ---------- */
+
+.auth-title {
+  margin: 0 0 4px;
+  font-size: var(--app-font-xl);
+  font-weight: 600;
+  color: var(--app-text-1);
+}
+
+.auth-subtitle {
+  margin: 0 0 20px;
+  font-size: var(--app-font-md);
+  color: var(--app-text-2);
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: var(--app-font-sm);
+}
+
+.auth-links a {
+  color: var(--el-color-primary);
+}
+
+.auth-links a:hover {
+  color: var(--app-brand-hover);
+}
+
+/* auth 卡内通栏提交按钮 */
+.auth-submit {
+  width: 100%;
+}
+
+/* ---------- 页面布局工具类（各页 scoped 同名副本统一上收） ---------- */
+
+/* 页头：标题 + 可选描述 + 右侧 actions */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 页面标题（可独立使用，也可放 .page-header 内） */
+.page-title {
+  margin: 0;
+  font-size: var(--app-font-xl);
+  font-weight: 600;
+  color: var(--app-text-1);
+}
+
+.page-desc {
+  margin: 4px 0 0;
+  font-size: var(--app-font-sm);
+  color: var(--app-text-2);
+}
+
+/* 工具条：搜索框/筛选/主按钮行 */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* 工具条内搜索框标准宽度 */
+.search-input {
+  width: 280px;
+}
+
+/* 纵向堆叠：页头与卡片、卡片与卡片的标准间距 */
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 列表行：左主体 min-width:0 + 右 actions 固定；行间细分隔线 */
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.list-row .row-main {
+  min-width: 0;
+}
+
+.list-row .row-actions {
+  flex-shrink: 0;
+}
+
+/* meta 弱化行：12px 三级文字色（取代 opacity 技巧） */
+.list-row .row-meta {
+  font-size: var(--app-font-xs);
+  color: var(--app-text-3);
+}
+
+/* 首页英雄标题的高亮块 */
+.home-highlight {
+  position: relative;
+  border-radius: var(--app-radius-sm);
+  padding: 4px 12px;
+  background-color: var(--app-brand-subtle);
+}
+
+/* 导航链接（仅 AppHeader 使用；类名保留以便管理端 customCss 外部命中） */
+.nav-link {
+  display: block;
+  line-height: 1;
+  padding: 8px 12px;
+  border-radius: var(--app-radius-sm);
+  font-size: var(--app-font-md);
+  font-weight: 500;
+  color: var(--app-text-2);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.nav-link:hover {
+  background-color: var(--app-bg-subtle);
+  color: var(--app-text-1);
+}
+
+.nav-link.active {
+
+  &,
+  &:hover {
+    background-color: var(--app-brand-subtle);
+    color: var(--app-brand);
+  }
+}

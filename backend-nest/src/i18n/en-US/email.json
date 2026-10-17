@@ -1,0 +1,14 @@
+{
+  "activationSubject": "ShareLink Email Verification Code",
+  "activationHello": "Hello,",
+  "activationBody": "Your email verification code is (valid for 10 minutes):",
+  "resetSubject": "ShareLink Password Reset Code",
+  "resetHello": "Hello,",
+  "resetBody": "A password reset was requested. Your password reset code is (valid for 10 minutes):",
+  "footer": "If this wasn't you, please ignore this email.",
+  "testSubject": "ShareLink Test Email",
+  "testBody": "This is a test email — receiving it means your email configuration works.",
+  "shareLinkSubject": "ShareLink Share Link",
+  "shareLinkHello": "Hello,",
+  "shareLinkBody": "\"{name}\" has been shared with you. Click the link below to view it:"
+}

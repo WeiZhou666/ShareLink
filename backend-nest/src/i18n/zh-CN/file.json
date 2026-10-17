@@ -1,0 +1,15 @@
+{
+  "invalidIdFormat": "ID 格式无效",
+  "notFound": "未找到文件",
+  "quarantined": "该文件已被病毒扫描隔离，无法下载",
+  "passwordProtected": "此分享受密码保护",
+  "alreadyCompleted": "分享已完成",
+  "notEnoughSpace": "服务器空间不足",
+  "unexpectedChunk": "收到意外的分块",
+  "maxSizeExceeded": "超过最大分享限制",
+  "zipError": "创建 ZIP 文件时出错",
+  "s3MultipartPartTooSmall": "分块过小无法直传（S3 要求除末块外每块不小于 5MiB），已回退代理上传",
+  "s3UploadStale": "直传会话已失效，请重新上传",
+  "s3CompleteFailed": "分片校验失败，请重新上传",
+  "s3DirectNotSupported": "当前存储驱动不支持直传"
+}

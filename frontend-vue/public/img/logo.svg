@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- brand indigo disc, paper plane, nose to top-right -->
+  <circle cx="100" cy="100" r="95" fill="#5e6ad2"/>
+  <!-- upper wing, large top surface (brightest) -->
+  <path d="M 22 102 L 165 38 L 95 108 Z" fill="#ffffff"/>
+  <!-- right wing side face (very light) -->
+  <path d="M 165 38 L 132 165 L 95 108 Z" fill="#e8ebf7"/>
+  <!-- tail fold under the wing (light grey blue) -->
+  <path d="M 22 102 L 95 108 L 72 162 Z" fill="#c9cfe6"/>
+</svg>

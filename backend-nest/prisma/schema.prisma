@@ -1,0 +1,278 @@
+// Prisma 数据模型定义，业务模块后续在此追加 model
+// 注意：Prisma 7 起 schema 不再写 url，CLI 连接串在 prisma.config.ts，运行时由 PrismaService 传入驱动适配器
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// 用户：认证核心表，业务相关配额字段后续随业务模块追加
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  username String  @unique
+  email    String  @unique
+  // argon2 哈希；后续支持 OAuth 登录的用户可为空
+  password String?
+  isAdmin  Boolean @default(false)
+
+  // 邮箱验证：isActivated=false 的账号禁止登录；activationToken 为 6 位验证码，一次性、10 分钟有效（POST body 回填）
+  isActivated              Boolean   @default(true)
+  activationToken          String?   @unique
+  activationTokenExpiresAt DateTime?
+
+  // 忘记密码：重置凭证独立字段，1 小时有效；重置成功即清空（一次性）
+  // 同一时刻至多一个有效重置 token（重发即轮换旧的），与激活 token 同构
+  resetPasswordToken          String?   @unique
+  resetPasswordTokenExpiresAt DateTime?
+
+  // 软删除（注销冷静期）：deletedAt 非空 = 已注销，等待半年（182 天，见 auth.constants.ACCOUNT_RETENTION_MS）
+  // 冷静期后由 jobs 物理清除；冷静期内可凭原凭据自助恢复（POST /auth/recoverAccount）。
+  // 占名防冒充：username/email 原值保留不动，行还在 + unique 索引还在 = 冷静期内
+  // 同名注册被 P2002 自然拦截（防止他人注册同邮箱收到原用户邮件）；
+  // 恢复 = 只清 deletedAt；物理删行后名字自动释放。
+  deletedAt DateTime?
+
+  refreshTokens RefreshToken[]
+  // 第三方登录身份（OIDC/LDAP/微信…）：一个本地用户可绑定多个外部身份
+  identities    UserIdentity[]
+  shares        Share[]
+  // 我创建的反向分享令牌；发给我的分享（收件人关联）
+  reverseShares   ReverseShare[]
+  userRecipients  ShareUserRecipient[]
+  adminNoticeDismissals AdminNoticeDismissal[]
+  announcementReads     AnnouncementRead[]
+}
+
+// ===== 运营公告（管理端发布，区别于代码内置的系统级 AdminNotice）=====
+
+// 管理员在"公告管理"页发布的公告：全体登录用户可见，正文存 DB
+model Announcement {
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+
+  title             String
+  message           String
+  // 可选的"了解更多"外链
+  actionLink        String?
+  // 发布人用户名快照（管理员被删后仍可追溯是谁发的）
+  createdByUsername String?
+
+  reads             AnnouncementRead[]
+}
+
+// 公告已读记录：每人每公告一条（弹一次确认后不再弹）
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  readByUserId   String?
+  readByUsername String?
+  readByUser     User?        @relation(fields: [readByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([announcementId, readByUserId])
+}
+
+// 管理员公告已读记录：公告本身是代码内置的静态定义（见 admin/admin-notice.service.ts），
+// DB 只记录"哪个公告被哪个管理员读过"——noticeId 唯一保证一条公告只存一条已读，
+// 管理员被删时 SetNull 保留记录（公告仍算已读，换人登录不再弹）
+model AdminNoticeDismissal {
+  id                  String   @id @default(uuid())
+  createdAt           DateTime @default(now())
+
+  noticeId            String   @unique
+  dismissedByUserId   String?
+  dismissedByUsername String?
+  dismissedByUser     User?    @relation(fields: [dismissedByUserId], references: [id], onDelete: SetNull)
+}
+
+// 刷新令牌会话：access_token 过期后凭 refresh_token 静默续期，登出时按 id 删除
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @default(uuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  // 轮换时间：非空表示已被新会话替换；旧值再次出现即重用（疑似被盗）信号
+  revokedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 家族吊销/清理按 userId 批量删除，加索引避免全表扫描
+  @@index([userId])
+}
+
+// 第三方登录身份绑定表：身份关联的唯一事实来源
+// 关联键用"提供商保证永不改变的标识"（OIDC=sub / LDAP=objectGUID / GitHub=数字 id），
+// 邮箱只是首次注册时的初始属性——绝不允许按 email 认领已有账号（防止账号接管）
+model UserIdentity {
+  id String @id @default(uuid())
+
+  // provider 形如 'google' / 'oidc:keycloak' / 'ldap'；providerId 是该 provider 内的唯一标识
+  provider   String
+  providerId String
+  createdAt  DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 一个外部身份只能绑一个本地账号；用户被删时绑定关系级联清理
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+// 应用配置表：稀疏存储（只存 admin 通过界面改过的值，未改的走代码内清单默认值）
+// 覆盖优先级：config.yaml（启动加载，不可 UI 改） > 本表 > 代码内 defaultValue
+model Config {
+  key       String   @id // 全键名，如 'general.appName'（点号前缀即分类）
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// 分享：一条分享链接对应一个上传目录与一组文件
+// 生命周期：create（uploadLocked=false，接收分块上传）→ complete（uploadLocked=true，对外可访问）
+model Share {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String?
+  description String?
+  // 访问计数：签发分享访问令牌时 +1
+  views      Int      @default(0)
+  // 过期时间；特殊值 1970-01-01（unix 0）表示"永不过期"（全代码据此判断，与旧后端一致）
+  expiration DateTime
+  // 上传锁：complete 后置 true（对外可见、拒绝继续上传）；revertComplete 重开上传
+  uploadLocked Boolean @default(false)
+  // 多文件分享在 complete 时后台生成 archive.zip，就绪后置 true
+  isZipReady Boolean @default(false)
+  // 存储后端标记：本期仅 LOCAL（本地磁盘），S3 预留列
+  storageProvider String @default("LOCAL")
+
+  // 匿名分享允许无创建者；删除创建者时分享保留（保留 Public 链接语义，与旧后端 SetNull 对齐）
+  creatorId String?
+  creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+
+  // 反向分享来源：经反向分享链接上传的分享挂到对应 token 上（token 删除时解绑置空）
+  reverseShareId String?
+  reverseShare   ReverseShare? @relation(fields: [reverseShareId], references: [id], onDelete: SetNull)
+
+  // 安全策略（密码/最大查看次数/限定收件人）：可选一对一，无策略时整行不存在
+  security ShareSecurity?
+  // 邮件收件人（share.recipients）：给指定邮箱发通知用的名单
+  recipients     ShareRecipient[]
+  // 已关联的注册用户收件人（收到的分享页数据源）：email 命中已注册账号时自动落一条
+  userRecipients ShareUserRecipient[]
+  files File[]
+
+  @@index([creatorId])
+  @@index([expiration])
+}
+
+// 反向分享令牌：把 {appUrl}/upload/{token} 发给别人，对方无需账号即可向你上传文件
+// 用途计数在 complete 时递减；到期或用尽即失效
+model ReverseShare {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  // 对外暴露的核心凭证（链接里的 token）；不传时后端生成 uuid
+  token        String   @unique @default(uuid())
+  // 用该 token 创建的分享的过期时间（覆盖用户自选）
+  shareExpiration      DateTime
+  // 单次分享大小上限（字节），覆盖全局 share.maxSize
+  maxShareSize         Int
+  // complete 时是否给令牌创建者发邮件（本期未迁移该邮件模板，字段保留）
+  sendEmailNotification Boolean
+  // 剩余可用次数（-1 语义不支持，最低 1）
+  remainingUses Int
+  // 简化模式：对方上传页隐藏高级选项
+  simplified   Boolean @default(false)
+  // false 时仅令牌创建者与分享创建者能看生成的分享
+  publicAccess Boolean @default(true)
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  shares Share[]
+
+  @@index([creatorId])
+}
+
+// 分享安全策略：password 为 argon2 哈希；maxViews 空=不限次数
+model ShareSecurity {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  password String?
+  maxViews Int?
+
+  // restrictToRecipients=true 时仅收件人（及创建者）可访问
+  restrictToRecipients Boolean @default(false)
+
+  // 与 Share 一对一可选：shareId 唯一定位
+  shareId String? @unique
+  share   Share?  @relation(fields: [shareId], references: [id], onDelete: Cascade)
+}
+
+// 邮件收件人名单：创建分享时填写的 email 列表（不校验是否已注册，防账号枚举）
+model ShareRecipient {
+  id    String @id @default(uuid())
+  email String
+
+  shareId String
+  share   Share  @relation(fields: [shareId], references: [id], onDelete: Cascade)
+}
+
+// 收到的分享：ShareUserRecipient = "某注册用户 × 某条分享" 的关联
+// 两个来源：complete 时按 email 自动匹配注册账号；受限于收件人的用户首次访问时自动补挂
+model ShareUserRecipient {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  shareId String
+  share   Share  @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  // 一个用户对一条分享只挂一次
+  @@unique([userId, shareId])
+  @@index([userId])
+}
+
+// 分享内文件：size 用 BigInt 承载超大文件（>2^31 字节），出 JSON 前须转 string
+model File {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  name String
+  size BigInt
+
+  // 病毒扫描状态（ClamAV，antivirus 模块维护）：
+  // PENDING 待扫描（上传完成默认值）→ SCANNING 扫描中（防重复调度）→
+  // CLEAN 通过 / INFECTED 感染（磁盘文件已删除，仅保留记录）/ ERROR 扫描失败
+  // （fail-open：下载放行 + jobs 任务 8 每小时重试自愈）
+  scanStatus    ScanStatus @default(PENDING)
+  scannedAt     DateTime?
+  scanSignature String? // 命中的病毒签名（如 Eicar-Test-Signature），便于排查
+
+  shareId String
+  share   Share  @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+}
+
+enum ScanStatus {
+  PENDING
+  SCANNING
+  CLEAN
+  INFECTED
+  ERROR
+}

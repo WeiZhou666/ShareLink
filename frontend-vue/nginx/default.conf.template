@@ -1,0 +1,36 @@
+# ShareLink 前端站点 Nginx 配置模板（官方镜像 envsubst 机制）
+# 放入 /etc/nginx/templates/*.template，容器启动时自动替换 ${ENV_VAR} 后
+# 生成 /etc/nginx/conf.d/default.conf（$host 等 nginx 内置变量未被 compose 定义，原样保留）
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # gzip 压缩静态资源
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # 上传分块（octet-stream）请求体上限，需大于后端 chunkSize
+    client_max_body_size 2g;
+
+    # API 反代到后端容器（与 dev 期 Vite 代理同一拓扑）
+    location /api/ {
+        proxy_pass http://${BACKEND_HOST};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # 大分块上传/下载流式转发，不落 nginx 缓冲磁盘
+        proxy_request_buffering off;
+        proxy_read_timeout 300s;
+    }
+
+    # SPA fallback：非文件路径全部回落 index.html（vue-router history 模式）
+    location / {
+        try_files $uri /index.html;
+    }
+}
