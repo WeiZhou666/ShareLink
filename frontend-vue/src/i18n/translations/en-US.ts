@@ -325,9 +325,9 @@ export default {
   "notice.modal.headerTagMultiple": "{count} notices",
   "notice.modal.allCheckboxLabel": "I have read and acknowledged all notices above.",
   "notice.modal.allFooterNote": "Note: once acknowledged, these notices will be permanently dismissed on all your devices.",
-  "notice.donate.title": "Buy the author a coffee",
+  "notice.donate.title": "If you really like this site",
   "notice.donate.description":
-    "If this project helps you, feel free to scan the QR code to support its maintenance~",
+    "This project will stay free forever ✨. If it helps you, feel free to buy me a coffee. Thanks to every user for the support.",
   "notice.donate.alt": "WeChat reward QR code",
   "notice.donate.close": "Close",
   "sidebar.donate": "Support the author",

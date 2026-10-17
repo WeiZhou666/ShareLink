@@ -30,6 +30,9 @@ yarn-error.log*
 /data/
 /config.yaml
 
+# documentation（文档一律不入库：README/scheme/方案/部署笔记等所有 *.md）
+*.md
+
 # backend-nest（运行时产物）
 /backend-nest/logs/
 
