@@ -46,28 +46,34 @@ services:
       timeout: 3s
       retries: 20
 
-  # ClamAV 病毒扫描（clamd INSTREAM :3310）：backend 经服务名 clamav 直连。
-  # 首次启动 freshclam 下载 ~250MB 病毒库需数分钟，start_period 为其宽限
-  # 内存预算 ~1~1.5GB；不部署扫描时删掉本服务，并同步删除 backend.depends_on.clamav
-  clamav:
-    image: clamav/clamav:latest
-    container_name: sharelink-prod-clamav
-    restart: unless-stopped
-    volumes:
-      - clamav_data:/var/lib/clamav
-    healthcheck:
-      test: [ 'CMD', 'clamdcheck.sh' ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 300s
+  # ClamAV 病毒扫描（clamd INSTREAM :3310）—— 本部署未启用（2026-10-21）：
+  # 服务器仅 2 核 2GB 内存，ClamAV 内存预算 ~1~1.5GB 跑不动，扫描已关
+  # （config.production.yaml 里 antivirus.enabled: "false"）。
+  # 内存升级后恢复：①解开本服务块 ②backend.depends_on 加回 clamav(service_healthy)
+  # ③volumes 加回 clamav_data ④backend.environment 加回 CLAMAV_HOST/PORT
+  # ⑤config.production.yaml 的 antivirus.enabled 改 "true" 并 docker compose up -d
+  # clamav:
+  #   image: clamav/clamav:latest
+  #   container_name: sharelink-prod-clamav
+  #   restart: unless-stopped
+  #   volumes:
+  #     - clamav_data:/var/lib/clamav
+  #   healthcheck:
+  #     test: [ 'CMD', 'clamdcheck.sh' ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 10
+  #     start_period: 300s   # 首次启动 freshclam 下载 ~250MB 病毒库需数分钟，此为其宽限
 
   # MinIO 对象存储（S3 兼容）。生产建议改用云厂商 S3/R2 等：
   # 删掉本服务，.env 里 STORAGE_DRIVER=s3 + S3_ENDPOINT 指向真实端点即可
+  # 127.0.0.1:9000 仅宿主机内可达，供宿主机 Caddy 反代 s3.mysharelink.cn（直传端点）
   minio:
     image: bitnamilegacy/minio:latest
     container_name: sharelink-prod-minio
     restart: unless-stopped
+    ports:
+      - '127.0.0.1:9000:9000'
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sharelink}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-sharelink2026}
@@ -92,8 +98,7 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      clamav:
-        condition: service_healthy
+      # clamav 服务未部署（2核2G 内存不够），恢复步骤见上方 clamav 注释块
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -102,8 +107,7 @@ services:
       DB_PORT: 3306
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      CLAMAV_HOST: clamav
-      CLAMAV_PORT: 3310
+      # CLAMAV_HOST/PORT 未设：扫描已关（antivirus.enabled=false），后端不会发起 clamd 连接
       S3_ENDPOINT: http://minio:9000
       S3_FORCE_PATH_STYLE: 'true'
       # ---- 容器内路径 ----
@@ -111,14 +115,15 @@ services:
       CONFIG_FILE: /opt/app/config.yaml
       # dotenv 不覆盖已有变量：env_file 提供业务键（JWT_SECRET/CORS_ORIGIN/DB_*/SMTP_*/STORAGE_DRIVER...），
       # 本 environment 段优先级更高
+      # 列表式写法（全版本兼容）：对象式 - path/required 语法需 Compose v2.24+，
+      # 旧版会静默忽略整个 env_file 导致容器缺 env 崩溃循环（2026-10-21 服务器实测踩坑）
     env_file:
-      - path: ./.env
-        required: true
+      - ./.env
     volumes:
       - backend_data:/opt/app/backend/data
       - backend_logs:/opt/app/logs
-      # 应用级配置锁死键（appUrl/chunkSize/antivirus.enabled...），可选：
-      # - ./config.yaml:/opt/app/config.yaml:ro
+      # 应用级配置锁死键（生产版 appUrl=https://mysharelink.cn，与开发根 config.yaml 分离）
+      - ./config.production.yaml:/opt/app/config.yaml:ro
       # 生产强约束由 env-loader 校验：JWT_SECRET 强随机、COOKIE_SECURE=true、CORS_ORIGIN 必填
 
   frontend:
@@ -137,8 +142,8 @@ services:
 
 volumes:
   mysql_data:
-  redis_data:
-  clamav_data:
+  redis_data: # clamav_data：ClamAV 病毒库卷，未部署（恢复见 clamav 注释块）
+
   minio_data:
   backend_data:
   backend_logs:

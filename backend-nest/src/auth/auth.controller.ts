@@ -118,7 +118,7 @@ export class AuthController {
   /** 注册：首个用户自动成为管理员；开启邮箱验证时返回 verificationRequired，激活后才能登录 */
   @Post('signUp')
   @HttpCode(201)
-  @Throttle({ default: { limit: 10, ttl: 60 * 60 * 1000 } })
+  @Throttle({ default: { limit: 50, ttl: 60 * 60 * 1000 } })
   @ApiOperation({
     summary: '注册',
     description:

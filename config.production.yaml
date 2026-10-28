@@ -1,0 +1,30 @@
+# ShareLink 生产部署锁死配置（挂载进 backend 容器 /opt/app/config.yaml，只读）
+# 与开发用根 config.yaml 分离：appUrl 指向生产域名；修改后须 docker compose restart backend
+general:
+  # 站点对外地址——分享链接 /s/{id}、邮件内链接都靠它拼接，错了全站链接错
+  appUrl: https://mysharelink.cn
+
+security:
+  # 匿名建分享：滥用面大，安全基线锁死
+  allowUnauthenticatedShares: "false"
+  # 管理员越权访问所有分享：安全敏感开关，锁死
+  allowAdminAccessAllShares: "false"
+
+share:
+  # 分块大小（字节）：前后端上传协议共用参数，改动须前后端一致
+  chunkSize: "10000000"
+
+antivirus:
+  # ClamAV 病毒扫描：安全底线（设计上不允许从管理界面关闭）——
+  # 但服务器仅 2 核 2GB 内存，ClamAV 内存预算 ~1~1.5GB 跑不动，部署时明确关闭（2026-10-21）
+  # ⚠️ 关闭后上传文件不做病毒扫描，全靠分享链接的私密性保护；内存升级后改回 "true"
+  #    并按 docker-compose.yml clamav 注释块恢复服务
+  enabled: "false"
+
+smtp:
+  # 邮件投递开关（SMTP 凭证在 .env）
+  enabled: "true"
+
+oauth:
+  # 开放哪些第三方登录：GitHub 登录启用后在 .env 取消 OAuth 注释并同步此处
+  openProviders: ""
