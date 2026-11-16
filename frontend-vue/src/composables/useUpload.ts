@@ -29,7 +29,7 @@ export const useUpload = (
   isReverseShare: boolean,
   onCompleted: (share: Share) => void,
 ) => {
-  const state = reactive({ uploading: false, errorCount: 0 });
+  const state = reactive({ uploading: false, processing: false, errorCount: 0 });
 
   const uploadFiles = async (share: CreateShare) => {
     state.uploading = true;
@@ -115,16 +115,21 @@ export const useUpload = (
       uploadingFiles.every((f) => f.uploadingProgress >= 100)
     ) {
       try {
+        // complete 返回 202 后服务端异步合并分块/打包 zip（多文件时耗数秒到数十秒），
+        // 此时各文件进度已 100%，需要 processing 状态让 UI 给出"服务器处理中"反馈，
+        // 避免用户以为卡死（2026-11-16 上传进度体验优化）
+        state.processing = true;
         const share = await shareService.completeShare(createdShare.id);
-        state.uploading = false;
         onCompleted(share);
       } catch {
         toast.error(t("upload.notify.generic-error"));
+      } finally {
+        state.processing = false;
         state.uploading = false;
       }
     } else {
-      state.uploading = false;
       if (failed > 0) toast.error(t("upload.notify.count-failed", { count: failed }));
+      state.uploading = false;
     }
   };
 

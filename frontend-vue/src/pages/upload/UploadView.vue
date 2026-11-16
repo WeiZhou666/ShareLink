@@ -103,7 +103,7 @@ const notAllowed = computed(
     <template v-else>
       <Dropzone :max-share-size="maxShareSize" :current-files-size="currentFilesSize" :disabled="state.uploading"
         @files="onFilesChanged" />
-      <FileList v-if="files.length > 0" :files="files" @remove="removeFile" />
+      <FileList v-if="files.length > 0" :files="files" :processing="state.processing" @remove="removeFile" />
     </template>
 
     <CreateUploadModal v-model:show="showCreateModal" :files="files" :max-expiration="auth.user?.isAdmin ? { value: 0, unit: 'days' } : config.get('share.maxExpiration')

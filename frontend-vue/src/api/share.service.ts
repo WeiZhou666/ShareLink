@@ -50,7 +50,8 @@ const get = async (id: string): Promise<Share> => {
   return (await api.get(`shares/${id}`)).data;
 };
 
-const getFromOwner = async (id: string): Promise<Share> => {
+// from-owner 返回属主视图（含 security/ views 等），故类型为 MyShare 而非 Share
+const getFromOwner = async (id: string): Promise<MyShare> => {
   if (!isValidId(id)) throw new Error("Invalid ID");
   return (await api.get(`shares/${id}/from-owner`)).data;
 };

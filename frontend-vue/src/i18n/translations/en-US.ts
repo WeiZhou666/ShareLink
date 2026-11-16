@@ -494,6 +494,7 @@ export default {
   "upload.filelist.size": "Size",
   "upload.filelist.estimating": "Estimating...",
   "upload.filelist.remaining": "{time} remaining",
+  "upload.filelist.processing": "Upload finished. The server is processing, please wait...",
 
   // showCreateUploadModal.tsx
   "upload.modal.title": "Create Share",
@@ -609,6 +610,9 @@ export default {
   "share.edit.notify.generic-error":
     "An error occurred while finishing your share.",
   "share.edit.notify.save-success": "Share updated successfully",
+  "share.edit.password.remove": "Remove current password",
+  "share.edit.password.hint": "A password is set. Leave the input empty to keep it unchanged.",
+  "share.edit.max-views.hint": "Clear the value to remove the view limit.",
   // END /share/[id]/edit
 
   // /imprint

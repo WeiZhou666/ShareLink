@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Delete } from "@element-plus/icons-vue";
+import { Loading } from "@element-plus/icons-vue";
 import type { FileUpload } from "../../types/File.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import { getNormalizedFileName } from "../../utils/file.util";
 import { t } from "../../i18n";
 
-const props = defineProps<{ files: FileUpload[] }>();
+const props = defineProps<{ files: FileUpload[]; processing?: boolean }>();
 const emit = defineEmits<{ (e: "remove", file: FileUpload): void }>();
 
 const progressStatus = (progress: number) => {
@@ -52,6 +53,12 @@ const isUploading = (progress: number) => progress > 0 && progress < 100;
       </tr>
     </tbody>
   </table>
+  <!-- complete(202) 后服务端异步打包 zip：进度条已 100% 但分享尚未就绪，
+       用此提示条避免"转圈无反馈"被误认为卡死 -->
+  <div v-if="props.processing" class="processing-hint" role="status">
+    <el-icon class="is-loading"><Loading /></el-icon>
+    <span>{{ t("upload.filelist.processing") }}</span>
+  </div>
 </template>
 
 <style scoped>
@@ -94,5 +101,14 @@ const isUploading = (progress: number) => progress > 0 && progress < 100;
 .file-progress {
   max-width: 260px;
   margin-top: 6px;
+}
+
+.processing-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--app-text-2);
+  font-size: 0.9rem;
 }
 </style>

@@ -380,6 +380,7 @@ export default {
   "upload.filelist.size": "文件大小",
   "upload.filelist.estimating": "正在估算…",
   "upload.filelist.remaining": "剩余 {time}",
+  "upload.filelist.processing": "文件已上传完成，服务器正在处理，请稍候…",
   // showCreateUploadModal.tsx
   "upload.modal.title": "创建分享",
   "upload.modal.link.error.invalid": "只能包括字母，数字，下划线(_)，和横线(-)",
@@ -463,6 +464,9 @@ export default {
   "share.edit.append-upload": "追加文件",
   "share.edit.notify.generic-error": "完成分享时发生错误。",
   "share.edit.notify.save-success": "分享更新成功",
+  "share.edit.password.remove": "移除现有密码",
+  "share.edit.password.hint": "当前已设置密码，输入框留空则保持不变",
+  "share.edit.max-views.hint": "清除数值可取消访问次数限制",
   // END /share/[id]/edit
 
   // /imprint
